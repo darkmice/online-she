@@ -29,6 +29,10 @@
 
   --bezel:       #060910;
   --glow-soft:   0 0 24px rgba(94, 234, 212, 0.18);
+
+  /* 画布之外的固定竖向开销(HUD + 控件 + 提示 + 间距 + 上下留白)的估算高度。
+     .screen 用它把边长夹在视口可用高度内,实现整页 fit;按断点覆盖。*/
+  --chrome: 372px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -50,7 +54,11 @@ body {
   background:
     radial-gradient(120% 90% at 50% -10%, #122033 0%, var(--bg-2) 45%, var(--bg) 100%);
   background-attachment: fixed;
-  overflow: hidden;
+  /* 默认靠 .screen 的 min() 高度约束做到整页 fit(不需滚动);
+     仅在极端短视口(超出预算)时放开竖向滚动作兜底,杜绝控件被裁又够不到。*/
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   -webkit-user-select: none;
@@ -144,8 +152,11 @@ body::before {
 /* ---------- screen / canvas ---------- */
 .screen {
   position: relative;
-  width: 100%;
+  /* 边长 = min(可用宽度, 视口可用高度),取较小者 → 桌面矮分辨率(如 1280×800)、
+     竖屏手机都整页 fit、不裁切;受高度约束变窄时水平居中。 */
+  width: min(100%, calc(100dvh - var(--chrome)));
   aspect-ratio: 1 / 1;
+  margin-inline: auto;
   border-radius: 16px;
   padding: 10px;
   background:
@@ -365,10 +376,46 @@ body::before {
 
 /* ---------- responsive ---------- */
 @media (max-width: 480px) {
-  body { align-items: flex-start; padding-top: 14px; }
+  body { --chrome: 300px; align-items: center; }   /* 控件更矮 → 画布预算更大 */
   .dpad { grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(3, 48px); }
   .actions { min-width: 96px; }
   .icon-btn { min-width: 92px; }
+}
+
+/* 横屏 / 矮视口:纵向堆叠放不下(画布正方形会顶掉 HUD、控件落到折叠线下且
+   无法滚动)。改为「左画布 + 右控件栏」两栏,画布吃满视口高度,所有控件常驻可达。*/
+@media (orientation: landscape) and (max-height: 520px) {
+  body { align-items: center; }
+  .cabinet {
+    display: grid;
+    grid-template-columns: auto minmax(0, auto);
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+      "screen hud"
+      "screen controls"
+      "screen hint";
+    column-gap: clamp(12px, 3vw, 24px);
+    row-gap: 8px;
+    width: auto;
+    max-width: 98vw;
+    align-items: center;
+  }
+  .hud {
+    grid-area: hud;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+  }
+  .brand { font-size: clamp(18px, 5vh, 30px); }
+  .screen {
+    grid-area: screen;
+    width: auto;
+    height: min(calc(100dvh - 2 * clamp(8px, 2vh, 16px)), 64vw);
+    aspect-ratio: 1 / 1;
+    align-self: center;
+  }
+  .controls { grid-area: controls; }
+  .hint { grid-area: hint; max-width: 40vw; }
 }
 
 @media (prefers-reduced-motion: reduce) {
