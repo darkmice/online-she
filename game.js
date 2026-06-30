@@ -52,7 +52,17 @@
     right: { x: 1,  y: 0 }
   };
 
-  best = parseInt(localStorage.getItem(CONFIG.storageKey) || '0', 10) || 0;
+  // localStorage 安全封装:storage 被禁用 / 隐私模式 / sandboxed iframe(缺
+  // allow-same-origin)下,访问 localStorage 即抛 SecurityError。这里兜底为内存值,
+  // 绝不阻断游戏初始化与判负流程 —— best 退化为本局有效(不持久)。
+  function safeGet(key) {
+    try { return localStorage.getItem(key); } catch (e) { return null; }
+  }
+  function safeSet(key, val) {
+    try { localStorage.setItem(key, val); return true; } catch (e) { return false; }
+  }
+
+  best = parseInt(safeGet(CONFIG.storageKey) || '0', 10) || 0;
   bestEl.textContent = best;
 
   // ===================================================================
@@ -97,6 +107,7 @@
     hideOverlay(ovOver);
     hideOverlay(ovPause);
     lastTs = 0;
+    draw();                 // 立即呈现新棋盘,消除 retry 瞬间的旧定格残留
   }
 
   function togglePause() {
@@ -117,7 +128,7 @@
     var isNewBest = false;
     if (score > best) {
       best = score;
-      localStorage.setItem(CONFIG.storageKey, String(best));
+      safeSet(CONFIG.storageKey, String(best));   // 写失败也不阻断:best 退化为内存值
       bestEl.textContent = best;
       isNewBest = true;
     }
@@ -156,6 +167,7 @@
   //  逻辑 tick
   // ===================================================================
   function tick() {
+    if (!food) return;            // 防御:棋盘填满后 food 为 null(此刻理论上已非 RUNNING)
     if (inputQueue.length) dir = inputQueue.shift();
 
     var head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
@@ -310,9 +322,11 @@
     var fx = food.x * cell + cell / 2;
     var fy = food.y * cell + cell / 2;
     var base = cell * 0.32;
-    // 持续脉动 + 吃到瞬间的回弹
+    // 持续脉动 + 新食物生成瞬间的回弹:eatPulse 在吃到那一刻置 1,逐帧衰减,
+    // 让新食物从放大态回弹到常态(pop-in 反馈)。
     var pulse = 1 + Math.sin(performance.now() / 220) * 0.10;
-    var r = base * pulse;
+    var pop = 1 + eatPulse * 0.45;
+    var r = base * pulse * pop;
 
     ctx.save();
     ctx.shadowColor = 'rgba(251,113,133,0.65)';
@@ -356,7 +370,10 @@
     }
 
     if (eatPulse > 0) eatPulse = Math.max(0, eatPulse - 0.06);
-    draw();
+    // 仅运行态逐帧重绘(蛇移动 / 食物脉动需要);IDLE/PAUSED/OVER 为静止画面,
+    // 由状态切换处(layout / 上一帧定格)各画一帧即可,避免空转 441 格网格
+    // + shadowBlur(canvas 最贵操作之一)常驻 60fps,省低端移动端功耗。
+    if (state === STATE.RUNNING) draw();
   }
 
   // ===================================================================
@@ -489,10 +506,12 @@
   });
   soundBtn.addEventListener('click', function () { ensureAudio(); toggleSound(); });
 
-  // 尺寸自适应
-  window.addEventListener('resize', layout);
+  // 尺寸自适应:优先 ResizeObserver(精准观察 canvas 盒尺寸),不支持时回退
+  // window.resize —— 二选一,避免两者并存导致 layout() 双触发。
   if (window.ResizeObserver) {
     new ResizeObserver(layout).observe(canvas);
+  } else {
+    window.addEventListener('resize', layout);
   }
   // 切回前台时暂停态保护,避免误判超时跳步
   document.addEventListener('visibilitychange', function () {
