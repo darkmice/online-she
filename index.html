@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#070a11" />
+  <meta name="description" content="经典贪吃蛇 · 纯前端 HTML5 Canvas 单页游戏,方向键 / 滑动操控,支持桌面与移动端。" />
+  <title>SNAKE · 玉色街机</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="cabinet">
+    <!-- HUD -->
+    <header class="hud">
+      <h1 class="brand">SNAKE<span class="dot">.</span></h1>
+      <div class="scores">
+        <div class="score-box">
+          <span class="label">SCORE</span>
+          <span class="value" id="score">0</span>
+        </div>
+        <div class="score-box">
+          <span class="label">BEST</span>
+          <span class="value" id="best">0</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- 游戏屏 -->
+    <div class="screen">
+      <canvas id="game" aria-label="贪吃蛇游戏画面" role="img"></canvas>
+      <div class="scanlines" aria-hidden="true"></div>
+
+      <!-- 开始 -->
+      <div class="overlay start show" id="overlay-start">
+        <div class="big">SNAKE</div>
+        <p class="sub">方向键 / WASD 或屏幕方向键操控<br />移动端可直接在屏幕上滑动<br />吃食物变长 · 别撞墙也别咬到自己</p>
+        <button class="btn" id="btn-start" type="button">▶ 开始游戏</button>
+      </div>
+
+      <!-- 暂停 -->
+      <div class="overlay pause" id="overlay-pause">
+        <div class="big">已暂停</div>
+        <p class="sub">按 <kbd>空格</kbd> / <kbd>P</kbd> 继续</p>
+        <button class="btn" id="btn-resume" type="button">继续</button>
+      </div>
+
+      <!-- 结束 -->
+      <div class="overlay over" id="overlay-over">
+        <div class="big">GAME OVER</div>
+        <div class="badge" id="new-best" hidden>★ 新纪录 ★</div>
+        <div class="final">
+          <div class="cell">
+            <span class="k">SCORE</span>
+            <span class="v" id="final-score">0</span>
+          </div>
+          <div class="cell best">
+            <span class="k">BEST</span>
+            <span class="v" id="final-best">0</span>
+          </div>
+        </div>
+        <button class="btn" id="btn-retry" type="button">↻ 再来一局</button>
+      </div>
+    </div>
+
+    <!-- 操控区 -->
+    <div class="controls">
+      <div class="dpad" role="group" aria-label="方向控制">
+        <button class="up"    data-dir="up"    type="button" aria-label="上">▲</button>
+        <button class="left"  data-dir="left"  type="button" aria-label="左">◀</button>
+        <div class="mid" aria-hidden="true"></div>
+        <button class="right" data-dir="right" type="button" aria-label="右">▶</button>
+        <button class="down"  data-dir="down"  type="button" aria-label="下">▼</button>
+      </div>
+
+      <div class="actions">
+        <button class="icon-btn" id="btn-pause" type="button">
+          <span class="ico" aria-hidden="true">⏸</span><span id="pause-label">暂停</span>
+        </button>
+        <button class="icon-btn" id="btn-restart" type="button">
+          <span class="ico" aria-hidden="true">↻</span>重开
+        </button>
+        <button class="icon-btn" id="btn-sound" type="button" aria-pressed="true">
+          <span class="ico" aria-hidden="true" id="sound-ico">🔊</span><span id="sound-label">音效</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 提示 -->
+    <footer class="hint">
+      <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> / <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 移动 ·
+      <kbd>空格</kbd> 暂停 / 开始 · <kbd>R</kbd> 重开
+    </footer>
+  </main>
+
+  <script src="game.js"></script>
+</body>
+</html>
