@@ -1,0 +1,27 @@
+# Default .gitignore for canonical Talon Pilot repos.
+# See docs/adr/canonical-repo-conservative-defaults.md (D4) for rationale.
+
+# 构建产物 / build artifacts
+target/
+node_modules/
+dist/
+build/
+*.exe
+
+# 系统垃圾 / OS junk
+.DS_Store
+Thumbs.db
+
+# 日志 / 媒体 — go to Artifact Storage, not git
+*.log
+*.mp4
+*.mov
+*.zip
+*.tar.gz
+
+# IDE 本地缓存
+.idea/
+.vscode/
+
+# Talon Pilot 运行时（控制面写入的临时文件，绝不入库）
+.talon-pilot/runtime/
