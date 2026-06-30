@@ -70,7 +70,9 @@ chair 必须 **Edit `CLAUDE.md` + `AGENTS.md` 的「§3 项目特定约定」节
 > 由 Talon Pilot chair 在群里形成共识后,**自己** Edit 这一节追加。
 > 每条约定一行,格式:`- <生效时间 YYYY-MM-DD>:<规则> —— 来源:群消息 <message_id 或简要>`。
 
-(本项目暂无特定约定)
+- 2026-06-30:前端结构为纯静态三文件(`index.html` + `style.css` + `game.js`),用普通 `<script>` 标签(**非** ES module),保证 `open index.html` 在 `file://` 下零依赖直开可玩 —— 来源:群消息(立项贪吃蛇)
+- 2026-06-30:`localStorage` 读写必须经 `safeGet`/`safeSet` 的 try/catch 兜底,异常(隐私模式 / sandboxed iframe `SecurityError`)时退化为内存值,不得阻断初始化或结束屏 —— 来源:群消息(代码门 P1)
+- 2026-06-30:响应式必须覆盖横屏矮视口(`orientation:landscape` 两栏布局)而非仅竖屏,关键控件在所有目标视口须 inView 可达、整页 fit 不靠滚动 —— 来源:群消息(功能门 P2)
 
 ## 4. 工作目录与文件布局
 
